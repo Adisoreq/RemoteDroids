@@ -1,38 +1,43 @@
-# Zdalne droidy
+# Zdalne Droidy
 
-Project by Adrian Piznal
+Zdalnie sterowane gestami dłoni, autonomiczne roboty.
+Projekt łączy w sobie elementy elektroniki, robotyki i informatyki.
 
-## Elementy
+## Komponenty
 
-### 1. Serwer
+### Serwer (Python)
 
-- Raspberry PI
-- Kamerka
-- Model AI
+- Platforma: Raspberry Pi / PC
+- Kamera: Raspberry Pi AI 3
+- Rozpoznawanie gestow: MediaPipe Tasks
 
-### 2. Klient
+### Klient (ESP32)
 
-- Zdalnie sterowane robociki
-- ESP32
+- Szkic Arduino: `src/client/RDClient.ino`
+- Definicje pinow: `src/client/Pins.h`
 
-## Szybki start (serwer)
+## Jak zacząć
 
-1. Aktywuj virtualenv:
-	- PowerShell: `./ZdalneDroidy/Scripts/Activate.ps1`
-2. Upewnij sie, ze masz pakiety: `mediapipe`, `opencv-contrib-python`, `numpy`.
-3. Pobierz model Gesture Recognizer (`gesture_recognizer.task`) i wstaw do `server/models/`.
-4. Uruchom:
-	- `python server/src/recogniser.py`
+### Uruchomienie serwera
 
-Skrypt otwiera podglad z kamery i pokazuje nazwe wykrytego gestu.
-Nacisnij `q`, aby zakonczyc.
+Przejdź [**tutaj**](docs/guides/setup.md), aby uzyskać więcej informacji.
 
-### Parametry uruchomienia
+## Profile zaleznosci
 
-- `--model` - sciezka do pliku `.task`
-- `--camera-id` - indeks kamery (domyslnie `0`)
-- `--min-score` - minimalna pewnosc predykcji (domyslnie `0.5`)
+- `requirements.txt` - bazowe zaleznosci runtime
+- `requirements-dev.txt` - zaleznosci developerskie (bazowe + narzedzia)
+- `requirements-prod.txt` - zaleznosci pod wdrozenie (bazowe, wersje do walidacji na Raspberry Pi)
 
-Przyklad:
+## Raspberry Pi (prod)
 
-`python server/src/recogniser.py --camera-id 1 --min-score 0.6`
+Przykladowy plik uslugi systemd znajduje sie w `scripts/systemd/remote-droids-server.service`.
+Szczegoly konfiguracji i uruchomienia: [docs/guides/setup.md](docs/guides/setup.md).
+
+## Wymagania
+
+- **Serwer**
+  - Python (3.13+)
+  - pip
+- **Klient**
+  - Arduino IDE
+  - esp32 (by Espressif Systems)

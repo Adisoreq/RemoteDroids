@@ -43,23 +43,23 @@ HAND_CONNECTIONS: List[Tuple[int, int]] = [
 
 
 def parse_args() -> argparse.Namespace:
-    default_model = Path(__file__).resolve().parent / "model" / "gesture_recognizer.task"
+    default_model = Path(__file__).resolve().parent.parent.parent / "assets" / "models" / "model" / "gesture_recognizer.task"
     parser = argparse.ArgumentParser(
-        description="Rozpoznawanie ukladu dloni i gestow z obrazu kamery (MediaPipe Tasks)."
+        description="Hand pose and gesture recognition from camera image (MediaPipe Tasks)."
     )
     parser.add_argument("--model", type=Path, default=default_model, help="Sciezka do pliku .task")
     parser.add_argument("--camera-id", type=int, default=0, help="Indeks kamery (domyslnie 0)")
     parser.add_argument(
         "--min-score",
         type=float,
-        default=0.5,
-        help="Minimalna pewnosc rozpoznanego gestu (0-1)",
+        default=0.4,
+        help="Minimum confidence for recognized gesture (0-1)",
     )
     parser.add_argument(
         "--max-hands",
         type=int,
         default=2,
-        help="Maksymalna liczba sledzonych dloni",
+        help="Max hands to detect",
     )
     return parser.parse_args()
 
@@ -125,24 +125,24 @@ def main() -> int:
     args = parse_args()
 
     if not args.model.exists():
-        print(f"[ERROR] Nie znaleziono modelu: {args.model}")
-        print("Podaj poprawna sciezke parametrem --model")
+        print(f"[ERROR] Cannot find model: {args.model}")
+        print("Provide a valid path using the --model parameter")
         return 1
 
     try:
         recognizer = create_gesture_recognizer(args.model, args.max_hands)
     except Exception as ex:
-        print("[ERROR] Nie udalo sie uruchomic GestureRecognizer.")
-        print(f"Szczegoly: {ex}")
+        print("[ERROR] Failed to initialize GestureRecognizer.")
+        print(f"Details: {ex}")
         return 1
 
     cap = open_camera(args.camera_id)
     if not cap.isOpened():
-        print(f"[ERROR] Nie mozna otworzyc kamery o indeksie {args.camera_id}")
+        print(f"[ERROR] Cannot open camera with ID {args.camera_id}")
         recognizer.close()
         return 1
 
-    window_name = "Zdalne Droidy - Rozpoznawanie dloni"
+    window_name = "Remote Droids - Hand Recognition"
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
     previous_time = time.perf_counter()
@@ -150,14 +150,14 @@ def main() -> int:
         while True:
             ok, frame_bgr = cap.read()
             if not ok:
-                print("[WARN] Brak klatki z kamery, koncze.")
+                print("[ERROR] No image from camera.")
                 break
 
             frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
             result = recognizer.recognize(mp_image)
 
-            gesture_text = "Gesture: brak"
+            gesture_text = "Gesture: none"
             hand_text = "Hands: 0"
 
             if result.hand_landmarks:
@@ -170,13 +170,13 @@ def main() -> int:
                 if best.score >= args.min_score:
                     gesture_text = f"Gesture: {best.category_name} ({best.score:.2f})"
                 else:
-                    gesture_text = f"Gesture: ponizej progu ({best.score:.2f})"
+                    gesture_text = f"Gesture: below threshold ({best.score:.2f})"
 
             now = time.perf_counter()
             fps = 1.0 / max(now - previous_time, 1e-6)
             previous_time = now
 
-            put_overlay_text(frame_bgr, gesture_text, f"{hand_text} | FPS: {fps:.1f} | Wyjscie [Q]")
+            put_overlay_text(frame_bgr, gesture_text, f"{hand_text} | FPS: {fps:.1f} | Exit [Q]")
             cv2.imshow(window_name, frame_bgr)
 
             # End loop if the window was closed from the title bar (X button).

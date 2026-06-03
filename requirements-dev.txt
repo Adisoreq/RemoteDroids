@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# Dev tooling
+pytest>=8.2.0
+ipykernel>=6.29.0
