@@ -49,7 +49,7 @@ for candidate in python3.13 python3 python; do
         ver=$("$candidate" --version 2>&1)
         if [[ "$ver" =~ Python\ 3\.([0-9]+) ]]; then
             minor="${BASH_REMATCH[1]}"
-            if (( minor >= 13 )); then
+            if (( minor >= 11 )); then
                 PYTHON_CMD="$candidate"
                 success "Znaleziono $ver"
                 break
@@ -57,7 +57,7 @@ for candidate in python3.13 python3 python; do
         fi
     fi
 done
-[[ -n "$PYTHON_CMD" ]] || error "Nie znaleziono Pythona 3.13+. Zainstaluj Python i dodaj go do PATH."
+[[ -n "$PYTHON_CMD" ]] || error "Nie znaleziono Pythona 3.11+. Zainstaluj Python i dodaj go do PATH."
 
 # ---------- virtualenv ----------
 VENV_DIR="$PROJECT_ROOT/.venv"

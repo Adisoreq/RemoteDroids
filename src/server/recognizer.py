@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import platform
 import sys
 import time
 from pathlib import Path
@@ -114,10 +115,16 @@ def put_overlay_text(frame_bgr, line1: str, line2: str) -> None:
 
 
 def open_camera(camera_id: int) -> cv2.VideoCapture:
-    capture = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
-    if not capture.isOpened():
-        capture.release()
-        capture = cv2.VideoCapture(camera_id)
+    if platform.system() == "Windows":
+        capture = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+        if not capture.isOpened():
+            capture.release()
+            capture = cv2.VideoCapture(camera_id)
+    else:
+        capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
+        if not capture.isOpened():
+            capture.release()
+            capture = cv2.VideoCapture(camera_id)
     return capture
 
 
