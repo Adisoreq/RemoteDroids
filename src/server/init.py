@@ -1,3 +1,4 @@
+import glob
 import os
 import pathlib
 import platform
@@ -59,20 +60,30 @@ def select_model():
             print("\nInvalid input. Please enter a number.")
 
 
+camera_devices = []
+
 def list_cameras(max_cameras=MAX_CAMERAS):
-    backend = cv2.CAP_V4L2 if platform.system() != "Windows" else cv2.CAP_DSHOW
-    
+    global camera_devices
+    camera_devices = []
+
     print("Available cameras:")
-    found = 0
-    
-    for i in range(max_cameras):
-        cap = cv2.VideoCapture(i, backend)
-        if cap.isOpened():
-            print(f"[{i}] Camera {i}")
-            cap.release()
-            found += 1
-    
-    return found
+
+    if platform.system() == "Windows":
+        for i in range(max_cameras):
+            cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+            if cap.isOpened():
+                camera_devices.append(i)
+                print(f"[{len(camera_devices) - 1}] Camera {i}")
+                cap.release()
+    else:
+        for dev in sorted(glob.glob("/dev/video*")):
+            cap = cv2.VideoCapture(dev)
+            if cap.isOpened():
+                camera_devices.append(dev)
+                print(f"[{len(camera_devices) - 1}] {dev}")
+                cap.release()
+
+    return len(camera_devices)
 
 
 def no_cameras():
@@ -80,18 +91,16 @@ def no_cameras():
 
 
 def select_camera_id():
-
     while True:
         try:
-            choice = input("Select camera ID (0, 1, 2...) or quit (q): \n> ")
+            choice = input("Select camera by number (0, 1, 2...) or quit (q): \n> ")
             if choice.lower() == "q":
                 return None
             choice = int(choice)
-            if choice >= 0:
-                return choice
+            if 0 <= choice < len(camera_devices):
+                return camera_devices[choice]
             else:
-                print(f"\nPlease select valid camera ID.")
-                
+                print(f"\nPlease select an available camera.")
         except ValueError:
             print("\nInvalid input. Please enter a number.")
 
@@ -127,6 +136,6 @@ if __name__ == "__main__":
         exit(0)
 
     print(f"Selected camera ID: {selected_camera_id}\n")
-    
+
     start_server()
 

@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
         description="Hand pose and gesture recognition from camera image (MediaPipe Tasks)."
     )
     parser.add_argument("--model", type=Path, default=default_model, help="Sciezka do pliku .task")
-    parser.add_argument("--camera-id", type=int, default=0, help="Indeks kamery (domyslnie 0)")
+    parser.add_argument("--camera-id", type=str, default="0", help="Indeks lub sciezka kamery (np. 0 lub /dev/video2)")
     parser.add_argument(
         "--min-score",
         type=float,
@@ -114,17 +114,16 @@ def put_overlay_text(frame_bgr, line1: str, line2: str) -> None:
     )
 
 
-def open_camera(camera_id: int) -> cv2.VideoCapture:
+def open_camera(camera_id: str) -> cv2.VideoCapture:
+    # Use int index when a plain number is given, string path otherwise
+    source = int(camera_id) if camera_id.lstrip("-").isdigit() else camera_id
     if platform.system() == "Windows":
-        capture = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+        capture = cv2.VideoCapture(source, cv2.CAP_DSHOW)
         if not capture.isOpened():
             capture.release()
-            capture = cv2.VideoCapture(camera_id)
+            capture = cv2.VideoCapture(source)
     else:
-        capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
-        if not capture.isOpened():
-            capture.release()
-            capture = cv2.VideoCapture(camera_id)
+        capture = cv2.VideoCapture(source)
     return capture
 
 
