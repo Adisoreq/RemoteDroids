@@ -62,6 +62,15 @@ def select_model():
 
 camera_devices = []
 
+def _get_camera_name(dev: str) -> str:
+    """Read camera name from sysfs (Linux only). Returns empty string on failure."""
+    try:
+        video_name = pathlib.Path(dev).name  # e.g. "video2"
+        name_path = pathlib.Path(f"/sys/class/video4linux/{video_name}/name")
+        return name_path.read_text().strip()
+    except Exception:
+        return ""
+
 def list_cameras(max_cameras=MAX_CAMERAS):
     global camera_devices
     camera_devices = []
@@ -80,7 +89,9 @@ def list_cameras(max_cameras=MAX_CAMERAS):
             cap = cv2.VideoCapture(dev)
             if cap.isOpened():
                 camera_devices.append(dev)
-                print(f"[{len(camera_devices) - 1}] {dev}")
+                name = _get_camera_name(dev)
+                label = f"{dev}  ({name})" if name else dev
+                print(f"[{len(camera_devices) - 1}] {label}")
                 cap.release()
 
     return len(camera_devices)
